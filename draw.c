@@ -15,7 +15,7 @@ extern TTF_Font *font;
 // global sim variables
 double TIME_STEP = 0.1;
 double GLOB_AMPLITUDE;
-double GLOB_LAMBDA;
+double GLOB_LAMBDA = 30.f;
 double GLOB_PERIOD;
 
 double wave_func(double t, double x,
@@ -31,11 +31,14 @@ void draw_waves_basic()
     static double t = 0;
     t += TIME_STEP;
 
-    for (int x = 10; x < 500; x++) {
-        int y = (int)(SCALE * wave_func(t, (double)x/SCALE, 5.f, 30.f, 1.f, 0.f));
-        pixelRGBA(renderer, x, y + 300, 255, 0, 0, 255);
+    // animate basic wave equation
+    for (int x = 10; x < CONFIG_WINDOW_WIDTH-10; x++) {
+        int y = (int)(SCALE * wave_func(t, (double)x/SCALE, 5.f, GLOB_LAMBDA, 1.f, 0.f));
+        pixelRGBA(renderer, x, CONFIG_WINDOW_HEIGHT/2+y, 255, 0, 0, 255);
     }
 }
+
+#define WIDGET_LAMBDA_SLIDER 0
 
 Scene SCENES[] = {
     [SCENE_MENU] = {
@@ -44,7 +47,7 @@ Scene SCENES[] = {
             {
                 .widget_type = WIDGET_BUTTON,
                 .x1 = 0, .y1 = 0,
-                .x2 = 550, .y2 = 250,
+                .x2 = 300, .y2 = 100,
                 .label = "start",
                 .callback = callback_switch_scene,
                 .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC],
@@ -57,6 +60,16 @@ Scene SCENES[] = {
     [SCENE_BASIC_WAVE_FUNC] = {
         .drawfn = draw_waves_basic,
         .widgets = {
+            [WIDGET_LAMBDA_SLIDER] = {
+                .widget_type = WIDGET_SLIDER,
+                .x1 = 500, .y1 = 10,
+                .x2 = 800, .y2 = 110,
+                .label = "lambda",
+                .slider_min = 0, .slider_max = 100, .slider_value = 0,
+                .slider_var = &GLOB_LAMBDA,
+                .callback = callback_slider_setvar,
+                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[WIDGET_LAMBDA_SLIDER] // this widget
+            },
             {
                 .widget_type = WIDGET_BUTTON,
                 .x1 = 0, .y1 = 0,

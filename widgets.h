@@ -5,8 +5,14 @@
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <SDL2/SDL_ttf.h>
 
+typedef struct SliderSetVar {
+    void *var;
+    void *value;
+} SliderSetVar;
+
 typedef enum WidgetEnum {
     WIDGET_BUTTON,
+    WIDGET_SLIDER,
     WIDGET_END,
 } WidgetEnum;
 
@@ -21,14 +27,17 @@ typedef struct Widget {
     union {
         // slider widget
         struct {
-            int slider_min, slider_max, slider_step;
+            double slider_min, slider_max, slider_step;
+            double slider_value, *slider_var;
         };
     };
 } Widget;
 
 void callback_switch_scene(void *data);
+void callback_slider_setvar(void *data);
 
 void draw_widget(Widget *widget);
-void widget_draw_button(const char *label, int x1, int y1, int x2, int y2);
+
+void widget_update_sliders(int x, int y);
 
 #endif /* _WIDGETS_H */

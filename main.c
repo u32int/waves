@@ -20,6 +20,7 @@ SDL_Renderer *renderer;
 TTF_Font *font;
 
 SimState SIM_STATE = {
+    .mouse_down = false,
     .sel_scene = &SCENES[SCENE_MENU],
 };
 
@@ -45,15 +46,16 @@ void loop(void)
             RUN = false;
             return;
 #endif
-        case SDL_WINDOWEVENT:
-            if (ev.window.event == SDL_WINDOWEVENT_RESIZED) {
-                int win_w, win_h;
-                SDL_GetWindowSize(window, &win_w, &win_h);
-                printf("SIZE: %d %d\n", win_w, win_h);
-            }
-            break;
         case SDL_MOUSEBUTTONDOWN:
+            SIM_STATE.mouse_down = true;
             trigger_widget(ev.button.x, ev.button.y);
+            break;
+        case SDL_MOUSEBUTTONUP:
+            SIM_STATE.mouse_down = false;
+            break;
+        case SDL_MOUSEMOTION:
+            if (SIM_STATE.mouse_down)
+                widget_update_sliders(ev.button.x, ev.button.y);
             break;
         }
     }
