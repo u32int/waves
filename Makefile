@@ -3,7 +3,7 @@ CFLAGS = -Wall -Werror
 CFLAGS_DEBUG = -fsanitize=address,undefined -g3
 LDFLAGS = -lm -lSDL2 -lSDL2_ttf -lSDL2_gfx
 
-CFILES = main.c draw.c
+CFILES = main.c draw.c widgets.c
 BIN = waves
 
 all:	
@@ -16,6 +16,7 @@ wasm:
 	-s USE_SDL_TTF=2 \
 	-s USE_SDL_GFX=2 \
 	-s SDL2_IMAGE_FORMATS='["png"]' \
+	--preload-file res \
 	-o index.js
 
 

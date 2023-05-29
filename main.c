@@ -11,17 +11,19 @@
 #include <emscripten.h>
 #endif /* __EMSCRIPTEN__ */
 
+#include "simstate.h"
 #include "config.h"
 #include "draw.h"
 
 SDL_Window *window;
 SDL_Renderer *renderer;
+TTF_Font *font;
+
+SimState SIM_STATE = {
+    .sel_scene = &SCENES[SCENE_MENU],
+};
 
 bool RUN = true;
-
-struct SimState {
-    Scene *scene;
-} SIM_STATE;
 
 void panic_sdl(const char *msg)
 {
@@ -50,12 +52,17 @@ void loop(void)
                 printf("SIZE: %d %d\n", win_w, win_h);
             }
             break;
+        case SDL_MOUSEBUTTONDOWN:
+            trigger_widget(ev.button.x, ev.button.y);
+            break;
         }
     }
 
     SDL_SetRenderDrawColor(renderer, 18, 18, 18, 255);
     SDL_RenderClear(renderer);
-    draw();
+
+    draw_scene(SIM_STATE.sel_scene);
+
     SDL_RenderPresent(renderer);
 
     /* limit fps */
@@ -75,11 +82,18 @@ int main()
                               CONFIG_WINDOW_WIDTH, CONFIG_WINDOW_HEIGHT,
                               SDL_WINDOW_SHOWN);
     if (!window)
-        panic_sdl("create_window");
+        panic_sdl("CreateWindow");
 
     renderer = SDL_CreateRenderer(window, -1, 0);
     if (!renderer)
-        panic_sdl("create_renderer");
+        panic_sdl("CreateRenderer");
+
+    if (TTF_Init())
+        panic_sdl("TTF_Init");
+        
+    font = TTF_OpenFont("./res/LiberationSans-Regular.ttf", 128);
+    if (!font)
+        panic_sdl("TTF_OpenFont");
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(loop, -1, 1);
