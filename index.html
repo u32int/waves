@@ -1,0 +1,15 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <center>
+      <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    </center>
+    <script type='text/javascript'>
+      var Module = {
+          canvas: (function() { return document.getElementById('canvas'); })()
+      };
+    </script>
+    <script src="index.js"></script>
+  </body>
+</html>
