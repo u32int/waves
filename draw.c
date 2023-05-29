@@ -32,7 +32,7 @@ void draw_waves_basic()
     t += TIME_STEP;
 
     // animate basic wave equation
-    for (int x = 10; x < CONFIG_WINDOW_WIDTH-10; x++) {
+    for (int x = 10; x < CONFIG_WINDOW_WIDTH-10; x += 3) {
         int y = (int)(SCALE * wave_func(t, (double)x/SCALE, 5.f, GLOB_LAMBDA, 1.f, 0.f));
         pixelRGBA(renderer, x, CONFIG_WINDOW_HEIGHT/2+y, 255, 0, 0, 255);
     }
@@ -65,7 +65,7 @@ Scene SCENES[] = {
                 .x1 = 500, .y1 = 10,
                 .x2 = 800, .y2 = 110,
                 .label = "lambda",
-                .slider_min = 0, .slider_max = 100, .slider_value = 0,
+                .slider_min = 0, .slider_max = 100, .slider_value = 30.f,
                 .slider_var = &GLOB_LAMBDA,
                 .callback = callback_slider_setvar,
                 .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[WIDGET_LAMBDA_SLIDER] // this widget

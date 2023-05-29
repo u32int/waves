@@ -5,7 +5,7 @@
 #define CONFIG_WINDOW_HEIGHT 900
 #define CONFIG_MAX_WIDGETS 32
 
-#define FPS 60
-#define FPS_DELTA (1000/FPS)
+#define CONFIG_FPS 40
+#define CONFIG_FPS_DELTA (1000/FPS)
 
 #endif

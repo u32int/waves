@@ -34,7 +34,9 @@ void panic_sdl(const char *msg)
 
 void loop(void)
 {
+#ifndef __EMSCRIPTEN__
     Uint64 frame_start = SDL_GetTicks64();
+#endif /* __EMSCRIPTEN__ */
 
     static SDL_Event ev;
     while (SDL_PollEvent(&ev)) {
@@ -45,7 +47,7 @@ void loop(void)
 #else
             RUN = false;
             return;
-#endif
+#endif /* __EMSCRIPTEN__ */
         case SDL_MOUSEBUTTONDOWN:
             SIM_STATE.mouse_down = true;
             trigger_widget(ev.button.x, ev.button.y);
@@ -67,11 +69,13 @@ void loop(void)
 
     SDL_RenderPresent(renderer);
 
+#ifndef __EMSCRIPTEN__
     /* limit fps */
     Uint64 frame_time = SDL_GetTicks64() - frame_start;
-    if (frame_time < FPS_DELTA) {
-        SDL_Delay(FPS_DELTA-frame_time);
+    if (frame_time < CONFIG_FPS_DELTA) {
+        SDL_Delay(CONFIG_FPS_DELTA-frame_time);
     }
+#endif /* __EMSCRIPTEN__ */
 }
 
 int main()
@@ -82,7 +86,7 @@ int main()
     window = SDL_CreateWindow("_dwm_float",
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                               CONFIG_WINDOW_WIDTH, CONFIG_WINDOW_HEIGHT,
-                              SDL_WINDOW_SHOWN);
+                              SDL_WINDOW_OPENGL);
     if (!window)
         panic_sdl("CreateWindow");
 
@@ -98,7 +102,7 @@ int main()
         panic_sdl("TTF_OpenFont");
 
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(loop, -1, 1);
+    emscripten_set_main_loop(loop, CONFIG_FPS, 1);
 #else
     while (RUN) loop();
 #endif
