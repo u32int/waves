@@ -83,7 +83,7 @@ int main()
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
         panic_sdl("init");
 
-    window = SDL_CreateWindow("_dwm_float",
+    window = SDL_CreateWindow("Mechanical Waves",
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                               CONFIG_WINDOW_WIDTH, CONFIG_WINDOW_HEIGHT,
                               SDL_WINDOW_OPENGL);
