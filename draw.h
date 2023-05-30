@@ -12,6 +12,7 @@ typedef struct Scene {
 typedef enum SceneEnum {
     SCENE_MENU,
     SCENE_BASIC_WAVE_FUNC,
+    SCENE_INTERFERENCE,
     SCENE_END
 } SceneEnum;
 

@@ -10,4 +10,4 @@
 #define CONFIG_FPS 40
 #define CONFIG_FPS_DELTA (1000/CONFIG_FPS)
 
-#endif
+#endif /* _CONFIG_H */

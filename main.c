@@ -21,7 +21,7 @@ TTF_Font *font;
 
 SimState SIM_STATE = {
     .mouse_down = false,
-    .sel_scene = &SCENES[SCENE_MENU],
+    .sel_scene = &SCENES[SCENE_INTERFERENCE],
 };
 
 bool RUN = true;
