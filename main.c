@@ -50,7 +50,7 @@ void loop(void)
 #endif /* __EMSCRIPTEN__ */
         case SDL_MOUSEBUTTONDOWN:
             SIM_STATE.mouse_down = true;
-            trigger_widget(ev.button.x, ev.button.y);
+            widget_trigger(ev.button.x, ev.button.y);
             break;
         case SDL_MOUSEBUTTONUP:
             SIM_STATE.mouse_down = false;
@@ -97,7 +97,7 @@ int main()
     if (TTF_Init())
         panic_sdl("TTF_Init");
         
-    font = TTF_OpenFont("./res/LiberationSans-Regular.ttf", 128);
+    font = TTF_OpenFont("./res/LiberationSans-Regular.ttf", CONFIG_FONT_SIZE);
     if (!font)
         panic_sdl("TTF_OpenFont");
 

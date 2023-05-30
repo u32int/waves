@@ -18,6 +18,6 @@ typedef enum SceneEnum {
 extern Scene SCENES[];
 
 void draw_scene(Scene *scene);
-void trigger_widget(int x, int y);
+void draw_text(const char *label, int x1, int y1, int x2, int y2);
 
 #endif /* _DRAW_H */

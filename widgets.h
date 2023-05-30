@@ -27,17 +27,19 @@ typedef struct Widget {
     union {
         // slider widget
         struct {
-            double slider_min, slider_max, slider_step;
-            double slider_value, *slider_var;
+            double slider_min, slider_max, slider_step, slider_value;
+            void *slider_var;
         };
     };
 } Widget;
 
 void callback_switch_scene(void *data);
-void callback_slider_setvar(void *data);
+void callback_slider_setvar_double(void *data);
+void callback_slider_setvar_int(void *data);
 
 void draw_widget(Widget *widget);
 
+void widget_trigger(int x, int y);
 void widget_update_sliders(int x, int y);
 
 #endif /* _WIDGETS_H */

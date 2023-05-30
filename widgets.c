@@ -1,6 +1,8 @@
 #include "widgets.h"
 #include "simstate.h"
+#include "config.h"
 #include "draw.h"
+#include "utils.h"
 
 #include <assert.h>
 
@@ -13,12 +15,20 @@ void callback_switch_scene(void *data)
     SIM_STATE.sel_scene = data;
 }
 
-void callback_slider_setvar(void *data)
+void callback_slider_setvar_double(void *data)
 {
     Widget *slider = (Widget *)data;
     assert(slider && slider->widget_type == WIDGET_SLIDER);
 
-    *slider->slider_var = slider->slider_value;
+    *(double *)slider->slider_var = slider->slider_value;
+}
+
+void callback_slider_setvar_int(void *data)
+{
+    Widget *slider = (Widget *)data;
+    assert(slider && slider->widget_type == WIDGET_SLIDER);
+
+    *(int *)slider->slider_var = (int)slider->slider_value;
 }
 
 void widget_draw_button(const char *label,
@@ -26,58 +36,46 @@ void widget_draw_button(const char *label,
 {
     rectangleColor(renderer, x1, y1, x2, y2, 0xFFFFFFFF);
 
-    SDL_Color color = {255, 255, 255};
-    SDL_Surface *surface = TTF_RenderText_Solid(font, label, color);
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    int button_width = x2-x1;
+    int button_height = y2-y1;
 
-    SDL_Rect rect;
-    rect.x = x1; 
-    rect.y = y1; 
-    rect.w = abs(x1-x2); 
-    rect.h = abs(y1-y2);
+    int text_width = strlen(label)*22;
 
-    SDL_RenderCopy(renderer, texture, NULL, &rect);
-
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
+    draw_text(label,
+              x1 + button_width/2 - text_width/2, y1 + button_height/2 - button_height/3,
+              x1 + button_width/2 + text_width/2, y1 + button_height/2 + button_height/3);
 }
 
 void widget_draw_slider(const char *label,
                         int x1, int y1, int x2, int y2,
                         double slider_min, double slider_max, double slider_value)
 {
-    int width  = x2-x1;
-    int height = y2-y1;
+    int slider_width  = x2-x1;
+    int slider_height = y2-y1;
     const int thickness = 5;
 
-    int progress = width * (slider_value/slider_max);
+    int progress = slider_width * fabs((slider_value-slider_min)/(slider_max-slider_min));
 
     // draw bar
     boxColor(renderer,
-             x1, y1+height/2-thickness,
-             x2, y1+height/2+thickness,
+             x1, y1+slider_height/2-thickness,
+             x2, y1+slider_height/2+thickness,
              0xFFFFFFFF);
 
     // draw slider 'caret' (?)
     boxRGBA(renderer,
-            x1+progress,             y1+height/2-thickness*5,
-            x1+progress+thickness*2, y1+height/2+thickness*5,
+            x1+progress,             y1+slider_height/2-thickness*5,
+            x1+progress+thickness*2, y1+slider_height/2+thickness*5,
             100, 100, 100, 255);
 
-    SDL_Color color = {255, 255, 255};
-    SDL_Surface *surface = TTF_RenderText_Solid(font, label, color);
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    int text_width = strlen(label)*22;
+    draw_text(label, x1, y1, x1 + text_width, y1 + slider_height/3);
 
-    SDL_Rect rect;
-    rect.x = x1 + width/4; 
-    rect.y = y1; 
-    rect.w = abs(x1-x2) - width/2; 
-    rect.h = height/2-thickness*2;
-
-    SDL_RenderCopy(renderer, texture, NULL, &rect);
-
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
+    char buff[32];
+    snprintf(buff, 32, "%.2lf", slider_value);
+    draw_text(buff,
+              x1, y2-10,
+              x1 + strlen(buff)*22, y2 + 25);
 }
 
 void draw_widget(Widget *widget)
@@ -106,13 +104,16 @@ void widget_update_sliders(int x, int y)
         if (scene->widgets[i].widget_type != WIDGET_SLIDER)
             break;
 
+#define PAD 10
         // I'm sorry (I promise this kinda works)
-        if (x > scene->widgets[i].x1 && y > scene->widgets[i].y1 &&
-            x < scene->widgets[i].x2 && y < scene->widgets[i].y2) {
+        if (x > scene->widgets[i].x1 - PAD && y > scene->widgets[i].y1 &&
+            x < scene->widgets[i].x2 + PAD && y < scene->widgets[i].y2) {
 
-            int value_range = scene->widgets[i].slider_max - scene->widgets[i].slider_min;
-            int slider_width = scene->widgets[i].x2 - scene->widgets[i].x1;
-            int cursor_offset = x - scene->widgets[i].x1;
+            double value_range = scene->widgets[i].slider_max - scene->widgets[i].slider_min;
+            double slider_width = scene->widgets[i].x2 - scene->widgets[i].x1;
+
+            int cursor_offset = clamp_int(x - scene->widgets[i].x1,
+                                          0, slider_width);
 
             scene->widgets[i].slider_value = scene->widgets[i].slider_min +
                 value_range * ((double)cursor_offset/slider_width);
@@ -120,6 +121,25 @@ void widget_update_sliders(int x, int y)
             if (!scene->widgets[i].callback)
                 continue;
             
+            scene->widgets[i].callback(scene->widgets[i].callback_data);
+        }
+    }
+}
+
+
+void widget_trigger(int x, int y)
+{
+    Scene *scene = SIM_STATE.sel_scene;
+
+    for (int i = 0; i < CONFIG_MAX_WIDGETS; i++) {
+        if (scene->widgets[i].widget_type == WIDGET_END)
+            break;
+
+        if (x > scene->widgets[i].x1 && y > scene->widgets[i].y1 &&
+            x < scene->widgets[i].x2 && y < scene->widgets[i].y2) {
+            if (!scene->widgets[i].callback)
+                return;
+
             scene->widgets[i].callback(scene->widgets[i].callback_data);
         }
     }

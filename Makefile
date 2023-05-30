@@ -3,7 +3,7 @@ CFLAGS = -Wall -Werror
 CFLAGS_DEBUG = -fsanitize=address,undefined -g3
 LDFLAGS = -lm -lSDL2 -lSDL2_ttf -lSDL2_gfx
 
-CFILES = main.c draw.c widgets.c
+CFILES = main.c draw.c widgets.c utils.c
 BIN = waves
 
 all:	
