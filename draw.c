@@ -95,18 +95,20 @@ void draw_scene_interference()
 #define START_POS 10
     static double t = 0;
     t += TIME_STEP;
+
+    // ...
+
     int red_y = (int)(SCALE *
                   wave_func(t, (double)START_POS/SCALE, GLOB_PERIOD, GLOB_LAMBDA, GLOB_AMPLITUDE, 0.f));
 
     int blue_y = (int)(SCALE *
-                           wave_func(t, (double)START_POS/SCALE, 5.f, 30.f, 1.f, 0.f));
+                  wave_func(t, (double)START_POS/SCALE, GLOB_PERIOD, GLOB_LAMBDA, GLOB_AMPLITUDE, 0.f));
 
     int combined_y = blue_y + red_y;
 
-    // animate basic wave equation
     for (int x = START_POS+WAVE_STEP; x < CONFIG_WINDOW_WIDTH; x += WAVE_STEP) {
         int red_ny = (int)(SCALE *
-                           wave_func(t, (double)x/SCALE, GLOB_PERIOD, GLOB_LAMBDA, GLOB_AMPLITUDE, 2.f));
+                           wave_func(t, (double)x/SCALE, GLOB_PERIOD, GLOB_LAMBDA, GLOB_AMPLITUDE, 0.f));
         lineRGBA(renderer,
                  x-WAVE_STEP, CONFIG_WINDOW_HEIGHT/2+red_y,
                  x, CONFIG_WINDOW_HEIGHT/2+red_ny,
@@ -114,7 +116,7 @@ void draw_scene_interference()
         red_y = red_ny;
 
         int blue_ny = (int)(SCALE *
-                           wave_func(t, (double)x/SCALE, 5.f, 30.f, 1.f, 0.f));
+                           wave_func(t, (double)x/SCALE, GLOB_PERIOD, GLOB_LAMBDA, GLOB_AMPLITUDE, GLOB_PHI));
         lineRGBA(renderer,
                  x-WAVE_STEP, CONFIG_WINDOW_HEIGHT/2+blue_y,
                  x, CONFIG_WINDOW_HEIGHT/2+blue_ny,
@@ -135,6 +137,9 @@ void draw_scene_interference()
 #define BASIC_AMPLITUDE_SLIDER 1
 #define BASIC_TIME_SLIDER 2
 #define BASIC_POINT_SLIDER 3
+
+#define INTERF_OFFSET 0
+#define INTERF_TIME_SLIDER 1
 
 Scene SCENES[] = {
     [SCENE_MENU] = {
@@ -164,45 +169,25 @@ Scene SCENES[] = {
     [SCENE_INTERFERENCE] = {
         .drawfn = draw_scene_interference,
         .widgets = {
-            [BASIC_LAMBDA_SLIDER] = {
+            [INTERF_OFFSET] = {
                 .widget_type = WIDGET_SLIDER,
-                .x1 = 600, .y1 = 10,
-                .x2 = 800, .y2 = 150,
-                .label = "lambda",
-                .slider_min = 0, .slider_max = 100,
-                .slider_value = 30.f, .slider_var = &GLOB_LAMBDA,
+                .x1 = 1100, .y1 = CONFIG_WINDOW_HEIGHT-150,
+                .x2 = 1300, .y2 = CONFIG_WINDOW_HEIGHT-40,
+                .label = "offset",
+                .slider_min = 0, .slider_max = PI*2,
+                .slider_value = 0, .slider_var = &GLOB_PHI,
                 .callback = callback_slider_setvar_double,
-                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_LAMBDA_SLIDER] // this widget
+                .callback_data = &SCENES[SCENE_INTERFERENCE].widgets[INTERF_OFFSET] // this widget
             },
-            [BASIC_AMPLITUDE_SLIDER] = {
+            [INTERF_TIME_SLIDER] = {
                 .widget_type = WIDGET_SLIDER,
-                .x1 = 850, .y1 = 10,
-                .x2 = 1050, .y2 = 150,
-                .label = "amplitude",
-                .slider_min = 0, .slider_max = 5,
-                .slider_value = 1.f, .slider_var = &GLOB_AMPLITUDE,
-                .callback = callback_slider_setvar_double,
-                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_AMPLITUDE_SLIDER] // this widget
-            },
-            [BASIC_TIME_SLIDER] = {
-                .widget_type = WIDGET_SLIDER,
-                .x1 = 1100, .y1 = 10,
-                .x2 = 1300, .y2 = 150,
+                .x1 = 900, .y1 = 10,
+                .x2 = 1100, .y2 = 150,
                 .label = "time flow",
                 .slider_min = 0.01, .slider_max = 1,
                 .slider_value = 0.1f, .slider_var = &TIME_STEP,
                 .callback = callback_slider_setvar_double,
-                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_TIME_SLIDER] // this widget
-            },
-            [BASIC_POINT_SLIDER] = {
-                .widget_type = WIDGET_SLIDER,
-                .x1 = 1100, .y1 = CONFIG_WINDOW_HEIGHT-150,
-                .x2 = 1300, .y2 = CONFIG_WINDOW_HEIGHT-40,
-                .label = "wave points",
-                .slider_min = 10, .slider_max = CONFIG_WINDOW_WIDTH,
-                .slider_value = 1000.f, .slider_var = &GLOB_WAVE_POINTS,
-                .callback = callback_slider_setvar_int,
-                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_POINT_SLIDER] // this widget
+                .callback_data = &SCENES[SCENE_INTERFERENCE].widgets[INTERF_TIME_SLIDER] // this widget
             },
             {
                 .widget_type = WIDGET_BUTTON,
