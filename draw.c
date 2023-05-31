@@ -3,6 +3,8 @@
 #include <SDL2/SDL_ttf.h>
 
 #include <math.h>
+#include <limits.h>
+
 #include "draw.h"
 #include "config.h"
 #include "simstate.h"
@@ -13,14 +15,25 @@ extern TTF_Font *font;
 
 #define PI 3.14159265358f
 
-// global sim variables
-double TIME_STEP = 0.1;
-double GLOB_AMPLITUDE = 1.f;
-double GLOB_LAMBDA = 30.f;
-double GLOB_PERIOD = 5.f;
-double GLOB_PHI = 0.f;
+#define DEFAULT_TIME_STEP 0.1f
+#define DEFAULT_DOPPLER_V 1
+#define DEFAULT_DOPPLER_WAVE_SPEED 3
+#define DEFAULT_GLOB_AMPLITUDE 2.f
+#define DEFAULT_GLOB_LAMBDA 30.f
+#define DEFAULT_GLOB_PERIOD 5.f
+#define DEFAULT_GLOB_PHI 0.f
+#define DEFAULT_GLOB_WAVE_POINTS 1000
 
-int GLOB_WAVE_POINTS = 1000;
+// global sim variables
+static double TIME_STEP = DEFAULT_TIME_STEP;
+static int DOPPLER_V = DEFAULT_DOPPLER_V;
+static int DOPPLER_WAVE_SPEED = DEFAULT_DOPPLER_WAVE_SPEED;
+static double GLOB_AMPLITUDE = DEFAULT_GLOB_AMPLITUDE;
+static double GLOB_LAMBDA = DEFAULT_GLOB_LAMBDA;
+static double GLOB_PERIOD = DEFAULT_GLOB_PERIOD;
+static double GLOB_PHI = DEFAULT_GLOB_PHI;
+static int GLOB_WAVE_POINTS = DEFAULT_GLOB_WAVE_POINTS;
+
 #define WAVE_STEP (CONFIG_WINDOW_WIDTH/GLOB_WAVE_POINTS)
 
 double wave_func(double t, double x,
@@ -52,7 +65,7 @@ void draw_text(const char *label, int x1, int y1, int x2, int y2)
 void draw_scene_menu()
 {
     static double t = 0;
-    t += TIME_STEP;
+    t += DEFAULT_TIME_STEP;
     int y = 50 * sin(((double)CONFIG_WINDOW_WIDTH/2-300)/50 + t);
 
     for (int x = CONFIG_WINDOW_WIDTH/2-300; x < CONFIG_WINDOW_WIDTH/2+300; x += WAVE_STEP) {
@@ -98,25 +111,29 @@ void draw_scene_interference()
 
     // ...
 
-    int red_y = (int)(SCALE *
-                  wave_func(t, (double)START_POS/SCALE, GLOB_PERIOD, GLOB_LAMBDA, GLOB_AMPLITUDE, 0.f));
+    int red_y = (int)(SCALE * wave_func(t, (double)START_POS/SCALE,
+                                        DEFAULT_GLOB_PERIOD,
+                                        DEFAULT_GLOB_LAMBDA, DEFAULT_GLOB_AMPLITUDE, 0.f));
 
-    int blue_y = (int)(SCALE *
-                  wave_func(t, (double)START_POS/SCALE, GLOB_PERIOD, GLOB_LAMBDA, GLOB_AMPLITUDE, 0.f));
+    int blue_y = (int)(SCALE * wave_func(t, (double)START_POS/SCALE,
+                                         DEFAULT_GLOB_PERIOD,
+                                         DEFAULT_GLOB_LAMBDA, DEFAULT_GLOB_AMPLITUDE, GLOB_PHI));
 
     int combined_y = blue_y + red_y;
 
     for (int x = START_POS+WAVE_STEP; x < CONFIG_WINDOW_WIDTH; x += WAVE_STEP) {
-        int red_ny = (int)(SCALE *
-                           wave_func(t, (double)x/SCALE, GLOB_PERIOD, GLOB_LAMBDA, GLOB_AMPLITUDE, 0.f));
+        int red_ny = (int)(SCALE * wave_func(t, (double)x/SCALE,
+                                             DEFAULT_GLOB_PERIOD,
+                                             DEFAULT_GLOB_LAMBDA, DEFAULT_GLOB_AMPLITUDE, 0.f));
         lineRGBA(renderer,
                  x-WAVE_STEP, CONFIG_WINDOW_HEIGHT/2+red_y,
                  x, CONFIG_WINDOW_HEIGHT/2+red_ny,
                  255, 0, 0, 100);
         red_y = red_ny;
 
-        int blue_ny = (int)(SCALE *
-                           wave_func(t, (double)x/SCALE, GLOB_PERIOD, GLOB_LAMBDA, GLOB_AMPLITUDE, GLOB_PHI));
+        int blue_ny = (int)(SCALE * wave_func(t, (double)x/SCALE,
+                                              DEFAULT_GLOB_PERIOD,
+                                              DEFAULT_GLOB_LAMBDA, DEFAULT_GLOB_AMPLITUDE, GLOB_PHI));
         lineRGBA(renderer,
                  x-WAVE_STEP, CONFIG_WINDOW_HEIGHT/2+blue_y,
                  x, CONFIG_WINDOW_HEIGHT/2+blue_ny,
@@ -132,6 +149,73 @@ void draw_scene_interference()
     }
 }
 
+typedef struct DopplerPoint {
+    int x, r, a;
+    bool hit;
+} DopplerPoint;
+
+void draw_scene_doppler()
+{
+#define DOPPLER_LAMBDA 30
+#define DP_BUFFER_SIZE 64
+
+#define DP_SRC_Y (CONFIG_WINDOW_HEIGHT/2)
+
+#define DP_LISTENER_X (CONFIG_WINDOW_WIDTH/2)
+#define DP_LISTENER_Y (CONFIG_WINDOW_HEIGHT-50)
+
+    static DopplerPoint buffer[DP_BUFFER_SIZE];
+    static int buffer_idx = 0;
+    static int sound_src_pos = 0;
+    //static int graph[DP_BUFFER_SIZE] = {0};
+    //static int graph_idx;
+    //static int prev_hit_t = -1;
+    static int t = 0;
+    t = (t + 1) % INT_MAX;
+
+    sound_src_pos = (sound_src_pos + DOPPLER_V) % CONFIG_WINDOW_WIDTH;
+    filledCircleRGBA(renderer, sound_src_pos, DP_SRC_Y, 20, 255, 0, 0, 255); // source
+
+    if (t % (DOPPLER_LAMBDA) == 0) {
+        buffer[buffer_idx].x = sound_src_pos;
+        buffer[buffer_idx].r = 1;
+        buffer[buffer_idx].a = 255;
+        buffer[buffer_idx].hit = false;
+        buffer_idx = (buffer_idx + 1) % (DP_BUFFER_SIZE);
+        printf("%d\n", buffer_idx);
+    }
+
+    for (int i = 0; i < DP_BUFFER_SIZE; i++) {
+        if (buffer[i].a != 0 && t % 5 == 0) {
+            buffer[i].a -= 4;
+        }
+
+        //int x_dist = abs(DP_LISTENER_X - buffer[i].x);
+        //int y_dist = abs(DP_LISTENER_Y - DP_SRC_Y);
+        //int p = sqrt(x_dist*x_dist + y_dist*y_dist);
+        //if (!buffer[i].hit && abs(p - buffer[i].r) < DOPPLER_WAVE_SPEED) {
+        //    buffer[i].hit = true;
+
+        //    if (prev_hit > 0) {
+        //        rectangleColor(renderer, );
+        //        graph_idx = (graph_idx + 1) % DP_BUFFER_SIZE;
+        //    }
+
+        //    prev_hit_t = t;
+        //}
+
+        if (buffer[i].a > 0) {
+            aacircleRGBA(renderer, buffer[i].x, DP_SRC_Y, buffer[i].r,
+                         255, 255, 255, buffer[i].a);
+
+            buffer[i].r += DOPPLER_WAVE_SPEED;
+        }
+
+    }
+
+    filledCircleRGBA(renderer, DP_LISTENER_X, DP_LISTENER_Y, 20, 0, 255, 0, 255); // listener
+}
+
 // this is horrible and ugly but idk how to ensure consistent indexes for passing ptrs to .data (enum??)
 #define BASIC_LAMBDA_SLIDER 0
 #define BASIC_AMPLITUDE_SLIDER 1
@@ -140,6 +224,9 @@ void draw_scene_interference()
 
 #define INTERF_OFFSET 0
 #define INTERF_TIME_SLIDER 1
+
+#define DOPPLER_V_SLIDER 0
+#define DOPPLER_WAVE_SPEED_SLIDER 1
 
 Scene SCENES[] = {
     [SCENE_MENU] = {
@@ -162,6 +249,50 @@ Scene SCENES[] = {
                 .callback_data = &SCENES[SCENE_INTERFERENCE],
             },
             {
+                .widget_type = WIDGET_BUTTON,
+                .x1 = CONFIG_WINDOW_WIDTH/2 - 150, .y1 = 560,
+                .x2 = CONFIG_WINDOW_WIDTH/2 + 150, .y2 = 640,
+                .label = "doppler",
+                .callback = callback_switch_scene,
+                .callback_data = &SCENES[SCENE_DOPPLER],
+            },
+            {
+                .widget_type = WIDGET_END
+            }
+        }
+    },
+    [SCENE_DOPPLER] = {
+        .drawfn =  draw_scene_doppler,
+        .widgets = {
+            [DOPPLER_V_SLIDER] = {
+                .widget_type = WIDGET_SLIDER,
+                .x1 = 1100, .y1 = 10,
+                .x2 = 1300, .y2 = 150,
+                .label = "source speed",
+                .slider_min = 0, .slider_max = 5,
+                .slider_value = DEFAULT_DOPPLER_V, .slider_var = &DOPPLER_V,
+                .callback = callback_slider_setvar_int,
+                .callback_data = &SCENES[SCENE_DOPPLER].widgets[DOPPLER_V_SLIDER]
+            },
+            [DOPPLER_WAVE_SPEED_SLIDER] = {
+                .widget_type = WIDGET_SLIDER,
+                .x1 = 800, .y1 = 10,
+                .x2 = 1000, .y2 = 150,
+                .label = "wave speed",
+                .slider_min = 1, .slider_max = 3,
+                .slider_value = DEFAULT_DOPPLER_WAVE_SPEED, .slider_var = &DOPPLER_WAVE_SPEED,
+                .callback = callback_slider_setvar_int,
+                .callback_data = &SCENES[SCENE_DOPPLER].widgets[DOPPLER_WAVE_SPEED_SLIDER]
+            },
+            {
+                .widget_type = WIDGET_BUTTON,
+                .x1 = 0, .y1 = 0,
+                .x2 = 300, .y2 = 80,
+                .label = "Back to Menu",
+                .callback = callback_switch_scene,
+                .callback_data = &SCENES[SCENE_MENU],
+            },
+            {
                 .widget_type = WIDGET_END
             }
         }
@@ -181,13 +312,13 @@ Scene SCENES[] = {
             },
             [INTERF_TIME_SLIDER] = {
                 .widget_type = WIDGET_SLIDER,
-                .x1 = 900, .y1 = 10,
-                .x2 = 1100, .y2 = 150,
+                .x1 = 1100, .y1 = 10,
+                .x2 = 1300, .y2 = 150,
                 .label = "time flow",
-                .slider_min = 0.01, .slider_max = 1,
-                .slider_value = 0.1f, .slider_var = &TIME_STEP,
+                .slider_min = 0, .slider_max = 1,
+                .slider_value = DEFAULT_TIME_STEP, .slider_var = &TIME_STEP,
                 .callback = callback_slider_setvar_double,
-                .callback_data = &SCENES[SCENE_INTERFERENCE].widgets[INTERF_TIME_SLIDER] // this widget
+                .callback_data = &SCENES[SCENE_INTERFERENCE].widgets[INTERF_TIME_SLIDER] 
             },
             {
                 .widget_type = WIDGET_BUTTON,
@@ -211,9 +342,9 @@ Scene SCENES[] = {
                 .x2 = 800, .y2 = 150,
                 .label = "lambda",
                 .slider_min = 0, .slider_max = 100,
-                .slider_value = 30.f, .slider_var = &GLOB_LAMBDA,
+                .slider_value = DEFAULT_GLOB_LAMBDA, .slider_var = &GLOB_LAMBDA,
                 .callback = callback_slider_setvar_double,
-                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_LAMBDA_SLIDER] // this widget
+                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_LAMBDA_SLIDER] 
             },
             [BASIC_AMPLITUDE_SLIDER] = {
                 .widget_type = WIDGET_SLIDER,
@@ -221,19 +352,19 @@ Scene SCENES[] = {
                 .x2 = 1050, .y2 = 150,
                 .label = "amplitude",
                 .slider_min = 0, .slider_max = 5,
-                .slider_value = 1.f, .slider_var = &GLOB_AMPLITUDE,
+                .slider_value = DEFAULT_GLOB_AMPLITUDE, .slider_var = &GLOB_AMPLITUDE,
                 .callback = callback_slider_setvar_double,
-                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_AMPLITUDE_SLIDER] // this widget
+                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_AMPLITUDE_SLIDER] 
             },
             [BASIC_TIME_SLIDER] = {
                 .widget_type = WIDGET_SLIDER,
                 .x1 = 1100, .y1 = 10,
                 .x2 = 1300, .y2 = 150,
                 .label = "time flow",
-                .slider_min = 0.01, .slider_max = 1,
-                .slider_value = 0.1f, .slider_var = &TIME_STEP,
+                .slider_min = 0, .slider_max = 1,
+                .slider_value = DEFAULT_TIME_STEP, .slider_var = &TIME_STEP,
                 .callback = callback_slider_setvar_double,
-                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_TIME_SLIDER] // this widget
+                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_TIME_SLIDER] 
             },
             [BASIC_POINT_SLIDER] = {
                 .widget_type = WIDGET_SLIDER,
@@ -241,9 +372,9 @@ Scene SCENES[] = {
                 .x2 = 1300, .y2 = CONFIG_WINDOW_HEIGHT-40,
                 .label = "wave points",
                 .slider_min = 10, .slider_max = CONFIG_WINDOW_WIDTH,
-                .slider_value = 1000.f, .slider_var = &GLOB_WAVE_POINTS,
+
                 .callback = callback_slider_setvar_int,
-                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_POINT_SLIDER] // this widget
+                .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_POINT_SLIDER] 
             },
             {
                 .widget_type = WIDGET_BUTTON,

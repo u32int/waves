@@ -105,7 +105,6 @@ void widget_update_sliders(int x, int y)
             break;
 
 #define PAD 10
-        // I'm sorry (I promise this kinda works)
         if (x > scene->widgets[i].x1 - PAD && y > scene->widgets[i].y1 &&
             x < scene->widgets[i].x2 + PAD && y < scene->widgets[i].y2) {
 

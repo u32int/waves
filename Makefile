@@ -15,7 +15,7 @@ wasm:
 	-s USE_SDL=2 \
 	-s USE_SDL_TTF=2 \
 	-s USE_SDL_GFX=2 \
-	-s SDL2_IMAGE_FORMATS='["png"]' \
+	-sALLOW_MEMORY_GROWTH \
 	--preload-file res \
 	-o index.js
 

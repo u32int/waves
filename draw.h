@@ -13,6 +13,7 @@ typedef enum SceneEnum {
     SCENE_MENU,
     SCENE_BASIC_WAVE_FUNC,
     SCENE_INTERFERENCE,
+    SCENE_DOPPLER,
     SCENE_END
 } SceneEnum;
 

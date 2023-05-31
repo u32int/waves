@@ -102,7 +102,7 @@ int main()
         panic_sdl("TTF_OpenFont");
 
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(loop, CONFIG_FPS, 1);
+    emscripten_set_main_loop(loop, 0, 1);
 #else
     while (RUN) loop();
 #endif
