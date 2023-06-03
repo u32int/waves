@@ -162,14 +162,16 @@ void draw_scene_doppler()
 #define DP_SRC_Y (CONFIG_WINDOW_HEIGHT/2)
 
 #define DP_LISTENER_X (CONFIG_WINDOW_WIDTH/2)
-#define DP_LISTENER_Y (CONFIG_WINDOW_HEIGHT-50)
+#define DP_LISTENER_Y (CONFIG_WINDOW_HEIGHT/2)
+
+#define DP_GRAPH_SIZE 50
 
     static DopplerPoint buffer[DP_BUFFER_SIZE];
     static int buffer_idx = 0;
     static int sound_src_pos = 0;
-    //static int graph[DP_BUFFER_SIZE] = {0};
-    //static int graph_idx;
-    //static int prev_hit_t = -1;
+    static int graph[DP_GRAPH_SIZE] = {0};
+    static int graph_idx;
+    static int prev_hit_t = -1;
     static int t = 0;
     t = (t + 1) % INT_MAX;
 
@@ -182,27 +184,47 @@ void draw_scene_doppler()
         buffer[buffer_idx].a = 255;
         buffer[buffer_idx].hit = false;
         buffer_idx = (buffer_idx + 1) % (DP_BUFFER_SIZE);
-        printf("%d\n", buffer_idx);
     }
 
     for (int i = 0; i < DP_BUFFER_SIZE; i++) {
         if (buffer[i].a != 0 && t % 5 == 0) {
-            buffer[i].a -= 4;
+            buffer[i].a -= 5;
         }
 
-        //int x_dist = abs(DP_LISTENER_X - buffer[i].x);
-        //int y_dist = abs(DP_LISTENER_Y - DP_SRC_Y);
-        //int p = sqrt(x_dist*x_dist + y_dist*y_dist);
-        //if (!buffer[i].hit && abs(p - buffer[i].r) < DOPPLER_WAVE_SPEED) {
-        //    buffer[i].hit = true;
+        int x_dist = abs(DP_LISTENER_X - buffer[i].x);
+        int y_dist = abs(DP_LISTENER_Y - DP_SRC_Y);
+        int p = sqrt(x_dist*x_dist + y_dist*y_dist);
+        if (!buffer[i].hit && abs(p - buffer[i].r) < DOPPLER_WAVE_SPEED) {
+            buffer[i].hit = true;
 
-        //    if (prev_hit > 0) {
-        //        rectangleColor(renderer, );
-        //        graph_idx = (graph_idx + 1) % DP_BUFFER_SIZE;
-        //    }
+            if (prev_hit_t > 0) {
+                graph[graph_idx] = (int)(1/(double)(t - prev_hit_t) * 400) - 16;
 
-        //    prev_hit_t = t;
-        //}
+                graph_idx = (graph_idx + 1) % DP_GRAPH_SIZE;
+            }
+
+            prev_hit_t = t;
+        }
+
+#define DP_GR_X1 (CONFIG_WINDOW_WIDTH-400)
+#define DP_GR_Y1 (CONFIG_WINDOW_HEIGHT-350)
+#define DP_GR_WIDTH 300
+#define DP_GR_HEIGHT 300
+#define DP_GR_STEP (DP_GR_WIDTH/DP_GRAPH_SIZE)
+
+
+        draw_text("f [hz]", DP_GR_X1 - 75, DP_GR_Y1, DP_GR_X1-5, DP_GR_Y1-28);
+        draw_text("t [s]", DP_GR_X1, DP_GR_Y1 + DP_GR_HEIGHT, DP_GR_X1 + 60, DP_GR_Y1+DP_GR_HEIGHT-28);
+
+        lineColor(renderer, DP_GR_X1, DP_GR_Y1, DP_GR_X1, DP_GR_Y1+DP_GR_HEIGHT, 0xFFFFFFFF);
+        lineColor(renderer, DP_GR_X1, DP_GR_Y1+DP_GR_HEIGHT, DP_GR_X1+DP_GR_WIDTH, DP_GR_Y1+DP_GR_HEIGHT, 0xFFFFFFFF);
+        
+        for (int g = 0; g < graph_idx-1; g++) {
+            lineRGBA(renderer,
+                     DP_GR_X1 + DP_GR_STEP*g, DP_GR_Y1 + DP_GR_HEIGHT/2 - 5*graph[g],
+                     DP_GR_X1 + DP_GR_STEP*(g+1), DP_GR_Y1 + DP_GR_HEIGHT/2 - 5*graph[g+1],
+                     255, 0, 0, 255);
+        }
 
         if (buffer[i].a > 0) {
             aacircleRGBA(renderer, buffer[i].x, DP_SRC_Y, buffer[i].r,
@@ -372,7 +394,7 @@ Scene SCENES[] = {
                 .x2 = 1300, .y2 = CONFIG_WINDOW_HEIGHT-40,
                 .label = "wave points",
                 .slider_min = 10, .slider_max = CONFIG_WINDOW_WIDTH,
-
+                .slider_value = DEFAULT_GLOB_WAVE_POINTS, .slider_var = &GLOB_WAVE_POINTS,
                 .callback = callback_slider_setvar_int,
                 .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_POINT_SLIDER] 
             },

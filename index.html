@@ -27,11 +27,26 @@
           background-color: transparent;
           text-decoration: none;
       }
+
+      .button {
+        border: none;
+        color: black;
+        background-color: #f44d2c;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body style="background-color: #181a1b">
     <center>
       <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+      <br>
+      <button class="button" onClick="window.location.reload();">Restart</button>    
       <br>
       <a style="font-size: 28px" href="https://github.com/u32int/waves">Source Code</a>
     </center>
