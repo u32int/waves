@@ -284,7 +284,7 @@ Scene SCENES[] = {
                 .widget_type = WIDGET_BUTTON,
                 .x1 = CONFIG_WINDOW_WIDTH/2 - 150, .y1 = 560,
                 .x2 = CONFIG_WINDOW_WIDTH/2 + 150, .y2 = 640,
-                .label = "doppler",
+                .label = "Doppler",
                 .callback = callback_switch_scene,
                 .callback_data = &SCENES[SCENE_DOPPLER],
             },
