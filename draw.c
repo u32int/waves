@@ -24,7 +24,7 @@ extern TTF_Font *font_huge;
 #define DEFAULT_GLOB_LAMBDA 30.f
 #define DEFAULT_GLOB_PERIOD 5.f
 #define DEFAULT_GLOB_PHI 0.f
-#define DEFAULT_GLOB_WAVE_POINTS 1000
+#define DEFAULT_GLOB_WAVE_POINTS 400
 
 // global sim variables
 static double TIME_STEP = DEFAULT_TIME_STEP;
@@ -88,8 +88,8 @@ void draw_scene_menu()
         y = ny;
     }
 
-    render_text("mechanical waves",
-                CONFIG_WINDOW_WIDTH/2-400, 10, font_huge);
+    render_text("fale mechaniczne",
+                CONFIG_WINDOW_WIDTH/2-360, 10, font_huge);
 }
 
 void draw_scene_basic()
@@ -208,7 +208,7 @@ void draw_scene_doppler()
             buffer[i].hit = true;
 
             if (prev_hit_t > 0) {
-                graph[graph_idx] = (int)(1/(double)(t - prev_hit_t) * 400) - 16;
+                graph[graph_idx] = (int)(1/(double)(t - prev_hit_t) * 400) - 10;
 
                 graph_idx = (graph_idx + 1) % DP_GRAPH_SIZE;
             }
@@ -268,7 +268,7 @@ Scene SCENES[] = {
                 .widget_type = WIDGET_BUTTON,
                 .x1 = CONFIG_WINDOW_WIDTH/2 - 150, .y1 = 350,
                 .x2 = CONFIG_WINDOW_WIDTH/2 + 150, .y2 = 440,
-                .label = "wave fn.",
+                .label = "fn. falowa",
                 .callback = callback_switch_scene,
                 .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC],
             },
@@ -276,7 +276,7 @@ Scene SCENES[] = {
                 .widget_type = WIDGET_BUTTON,
                 .x1 = CONFIG_WINDOW_WIDTH/2 - 150, .y1 = 460,
                 .x2 = CONFIG_WINDOW_WIDTH/2 + 150, .y2 = 540,
-                .label = "interference",
+                .label = "interferencja",
                 .callback = callback_switch_scene,
                 .callback_data = &SCENES[SCENE_INTERFERENCE],
             },
@@ -300,7 +300,7 @@ Scene SCENES[] = {
                 .widget_type = WIDGET_SLIDER,
                 .x1 = 1100, .y1 = 10,
                 .x2 = 1300, .y2 = 150,
-                .label = "source speed",
+                .label = "[v] źródła",
                 .slider_min = 0, .slider_max = 5,
                 .slider_value = DEFAULT_DOPPLER_V, .slider_var = &DOPPLER_V,
                 .callback = callback_slider_setvar_int,
@@ -310,7 +310,7 @@ Scene SCENES[] = {
                 .widget_type = WIDGET_SLIDER,
                 .x1 = 800, .y1 = 10,
                 .x2 = 1000, .y2 = 150,
-                .label = "wave speed",
+                .label = "[v] fali",
                 .slider_min = 1, .slider_max = 3,
                 .slider_value = DEFAULT_DOPPLER_WAVE_SPEED, .slider_var = &DOPPLER_WAVE_SPEED,
                 .callback = callback_slider_setvar_int,
@@ -318,9 +318,9 @@ Scene SCENES[] = {
             },
             {
                 .widget_type = WIDGET_BUTTON,
-                .x1 = 0, .y1 = 0,
-                .x2 = 300, .y2 = 80,
-                .label = "Back to Menu",
+                .x1 = 000, .y1 = 0,
+                .x2 = 240, .y2 = 80,
+                .label = "< Menu",
                 .callback = callback_switch_scene,
                 .callback_data = &SCENES[SCENE_MENU],
             },
@@ -336,7 +336,7 @@ Scene SCENES[] = {
                 .widget_type = WIDGET_SLIDER,
                 .x1 = 1100, .y1 = CONFIG_WINDOW_HEIGHT-150,
                 .x2 = 1300, .y2 = CONFIG_WINDOW_HEIGHT-40,
-                .label = "offset",
+                .label = "przesunięcie",
                 .slider_min = 0, .slider_max = PI*2,
                 .slider_value = 0, .slider_var = &GLOB_PHI,
                 .callback = callback_slider_setvar_double,
@@ -346,7 +346,7 @@ Scene SCENES[] = {
                 .widget_type = WIDGET_SLIDER,
                 .x1 = 1100, .y1 = 10,
                 .x2 = 1300, .y2 = 150,
-                .label = "time flow",
+                .label = "upływ czasu",
                 .slider_min = 0, .slider_max = 1,
                 .slider_value = DEFAULT_TIME_STEP, .slider_var = &TIME_STEP,
                 .callback = callback_slider_setvar_double,
@@ -355,8 +355,8 @@ Scene SCENES[] = {
             {
                 .widget_type = WIDGET_BUTTON,
                 .x1 = 0, .y1 = 0,
-                .x2 = 300, .y2 = 80,
-                .label = "Back to Menu",
+                .x2 = 240, .y2 = 80,
+                .label = "< Menu",
                 .callback = callback_switch_scene,
                 .callback_data = &SCENES[SCENE_MENU],
             },
@@ -382,7 +382,7 @@ Scene SCENES[] = {
                 .widget_type = WIDGET_SLIDER,
                 .x1 = 850, .y1 = 10,
                 .x2 = 1050, .y2 = 150,
-                .label = "amplitude",
+                .label = "amplituda",
                 .slider_min = 0, .slider_max = 5,
                 .slider_value = DEFAULT_GLOB_AMPLITUDE, .slider_var = &GLOB_AMPLITUDE,
                 .callback = callback_slider_setvar_double,
@@ -392,7 +392,7 @@ Scene SCENES[] = {
                 .widget_type = WIDGET_SLIDER,
                 .x1 = 1100, .y1 = 10,
                 .x2 = 1300, .y2 = 150,
-                .label = "time flow",
+                .label = "upływ czasu",
                 .slider_min = 0, .slider_max = 1,
                 .slider_value = DEFAULT_TIME_STEP, .slider_var = &TIME_STEP,
                 .callback = callback_slider_setvar_double,
@@ -402,8 +402,8 @@ Scene SCENES[] = {
                 .widget_type = WIDGET_SLIDER,
                 .x1 = 1100, .y1 = CONFIG_WINDOW_HEIGHT-150,
                 .x2 = 1300, .y2 = CONFIG_WINDOW_HEIGHT-40,
-                .label = "wave points",
-                .slider_min = 10, .slider_max = CONFIG_WINDOW_WIDTH,
+                .label = "sym. punkty",
+                .slider_min = 10, .slider_max = 500,
                 .slider_value = DEFAULT_GLOB_WAVE_POINTS, .slider_var = &GLOB_WAVE_POINTS,
                 .callback = callback_slider_setvar_int,
                 .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC].widgets[BASIC_POINT_SLIDER] 
@@ -411,8 +411,8 @@ Scene SCENES[] = {
             {
                 .widget_type = WIDGET_BUTTON,
                 .x1 = 0, .y1 = 0,
-                .x2 = 300, .y2 = 80,
-                .label = "Back to Menu",
+                .x2 = 240, .y2 = 80,
+                .label = "< Menu",
                 .callback = callback_switch_scene,
                 .callback_data = &SCENES[SCENE_MENU],
             },

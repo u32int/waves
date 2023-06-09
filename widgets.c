@@ -39,9 +39,9 @@ void widget_draw_button(const char *label,
     int button_width = x2-x1;
     int button_height = y2-y1;
 
-    int text_width = strlen(label)*22;
+    int text_width = strlen(label)*15;
 
-    render_text(label, x1 + button_width/2 - text_width/2, y1 + button_height/2 - button_height/3, font);
+    render_text(label, x1 + button_width/2 - text_width/2 - 30, y1 + button_height/6, font);
 }
 
 void widget_draw_slider(const char *label,
