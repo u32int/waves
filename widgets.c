@@ -41,9 +41,7 @@ void widget_draw_button(const char *label,
 
     int text_width = strlen(label)*22;
 
-    draw_text(label,
-              x1 + button_width/2 - text_width/2, y1 + button_height/2 - button_height/3,
-              x1 + button_width/2 + text_width/2, y1 + button_height/2 + button_height/3);
+    render_text(label, x1 + button_width/2 - text_width/2, y1 + button_height/2 - button_height/3, font);
 }
 
 void widget_draw_slider(const char *label,
@@ -68,14 +66,11 @@ void widget_draw_slider(const char *label,
             x1+progress+thickness*2, y1+slider_height/2+thickness*5,
             100, 100, 100, 255);
 
-    int text_width = strlen(label)*22;
-    draw_text(label, x1, y1, x1 + text_width, y1 + slider_height/3);
+    render_text(label, x1, y1-10, font);
 
     char buff[32];
     snprintf(buff, 32, "%.2lf", slider_value);
-    draw_text(buff,
-              x1, y2-10,
-              x1 + strlen(buff)*22, y2 + 25);
+    render_text(buff, x1, y2-10, font);
 }
 
 void draw_widget(Widget *widget)

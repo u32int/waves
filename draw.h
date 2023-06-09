@@ -20,6 +20,6 @@ typedef enum SceneEnum {
 extern Scene SCENES[];
 
 void draw_scene(Scene *scene);
-void draw_text(const char *label, int x1, int y1, int x2, int y2);
+void render_text(const char *text, int x1, int y1, TTF_Font *font);
 
 #endif /* _DRAW_H */

@@ -12,6 +12,8 @@
 extern SDL_Window *window;
 extern SDL_Renderer *renderer;
 extern TTF_Font *font;
+extern TTF_Font *font_small;
+extern TTF_Font *font_huge;
 
 #define PI 3.14159265358f
 
@@ -43,23 +45,32 @@ double wave_func(double t, double x,
     return amplitude * sin(2*PI*(t/period - x/lambda) + phi);
 }
 
-void draw_text(const char *label, int x1, int y1, int x2, int y2)
+void render_text(const char* text, int x, int y, TTF_Font *text_font)
 {
-    SDL_Color color = {255, 255, 255};
+    SDL_Surface *text_surface;
 
-    SDL_Surface *surface = TTF_RenderText_Solid(font, label, color);
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Color fgcolor = {255, 255, 255};
+    SDL_Color bgcolor = {18, 18, 18};
 
-    SDL_Rect rect;
-    rect.x = x1;
-    rect.y = y1;
-    rect.w = abs(x1-x2); 
-    rect.h = abs(y1-y2);
+    text_surface = TTF_RenderUTF8_Shaded(text_font, text, fgcolor, bgcolor);
+    
+    if(!text_surface) {
+        fprintf(stderr, "sdl_ttf error: %s", TTF_GetError());
+        exit(1);
+    }
 
-    SDL_RenderCopy(renderer, texture, NULL, &rect);
+    int txt_w = text_surface->w;
+    int txt_h = text_surface->h;
 
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
+    SDL_Rect text_rect = { .h = txt_h, .w = txt_w,
+                           .x = x, .y = y};
+
+    SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+
+    SDL_RenderCopy(renderer, text_texture, NULL, &text_rect);
+
+    SDL_FreeSurface(text_surface);
+    SDL_DestroyTexture(text_texture);
 }
 
 void draw_scene_menu()
@@ -77,9 +88,8 @@ void draw_scene_menu()
         y = ny;
     }
 
-    draw_text("mechanical waves",
-              CONFIG_WINDOW_WIDTH/2-400, 10,
-              CONFIG_WINDOW_WIDTH/2+400, 120);
+    render_text("mechanical waves",
+                CONFIG_WINDOW_WIDTH/2-400, 10, font_huge);
 }
 
 void draw_scene_basic()
@@ -156,8 +166,8 @@ typedef struct DopplerPoint {
 
 void draw_scene_doppler()
 {
-#define DOPPLER_LAMBDA 30
-#define DP_BUFFER_SIZE 64
+#define DOPPLER_LAMBDA 45
+#define DP_BUFFER_SIZE 16
 
 #define DP_SRC_Y (CONFIG_WINDOW_HEIGHT/2)
 
@@ -213,12 +223,12 @@ void draw_scene_doppler()
 #define DP_GR_STEP (DP_GR_WIDTH/DP_GRAPH_SIZE)
 
 
-        draw_text("f [hz]", DP_GR_X1 - 75, DP_GR_Y1, DP_GR_X1-5, DP_GR_Y1-28);
-        draw_text("t [s]", DP_GR_X1, DP_GR_Y1 + DP_GR_HEIGHT, DP_GR_X1 + 60, DP_GR_Y1+DP_GR_HEIGHT-28);
+        render_text("f [hz]", DP_GR_X1 - 75, DP_GR_Y1, font_small);
+        render_text("t [s]", DP_GR_X1, DP_GR_Y1 + DP_GR_HEIGHT, font_small);
 
         lineColor(renderer, DP_GR_X1, DP_GR_Y1, DP_GR_X1, DP_GR_Y1+DP_GR_HEIGHT, 0xFFFFFFFF);
         lineColor(renderer, DP_GR_X1, DP_GR_Y1+DP_GR_HEIGHT, DP_GR_X1+DP_GR_WIDTH, DP_GR_Y1+DP_GR_HEIGHT, 0xFFFFFFFF);
-        
+             
         for (int g = 0; g < graph_idx-1; g++) {
             lineRGBA(renderer,
                      DP_GR_X1 + DP_GR_STEP*g, DP_GR_Y1 + DP_GR_HEIGHT/2 - 5*graph[g],
@@ -258,7 +268,7 @@ Scene SCENES[] = {
                 .widget_type = WIDGET_BUTTON,
                 .x1 = CONFIG_WINDOW_WIDTH/2 - 150, .y1 = 350,
                 .x2 = CONFIG_WINDOW_WIDTH/2 + 150, .y2 = 440,
-                .label = "wave func",
+                .label = "wave fn.",
                 .callback = callback_switch_scene,
                 .callback_data = &SCENES[SCENE_BASIC_WAVE_FUNC],
             },
