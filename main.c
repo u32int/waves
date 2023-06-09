@@ -18,6 +18,8 @@
 SDL_Window *window;
 SDL_Renderer *renderer;
 TTF_Font *font;
+TTF_Font *font_small;
+TTF_Font *font_huge;
 
 SimState SIM_STATE = {
     .mouse_down = false,
@@ -101,8 +103,16 @@ int main()
     if (!font)
         panic_sdl("TTF_OpenFont");
 
+    font_small = TTF_OpenFont("./res/LiberationSans-Regular.ttf", CONFIG_FONT_SIZE_SMALL);
+    if (!font_small)
+        panic_sdl("TTF_OpenFont");
+
+    font_huge = TTF_OpenFont("./res/LiberationSans-Regular.ttf", CONFIG_FONT_SIZE_HUGE);
+    if (!font_huge)
+        panic_sdl("TTF_OpenFont");
+
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(loop, 0, 1);
+    emscripten_set_main_loop(loop, CONFIG_FPS, 1);
 #else
     while (RUN) loop();
 #endif
